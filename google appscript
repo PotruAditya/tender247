@@ -1,0 +1,63 @@
+// This function runs when the script receives an HTTP POST request.
+function doPost(e) {
+  try {
+    // Parse the JSON data sent from the Tampermonkey script
+    const data = JSON.parse(e.postData.contents);
+
+    // Get the active spreadsheet and the specific sheet named 'Sheet1'.
+    // Change 'Sheet1' if your sheet has a different name.
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Sheet1');
+
+    // Define the headers in the order you want them in the sheet.
+    const headers = [
+      'Extraction Timestamp', 'Project Title', 'Submission Date', 'Opening Date',
+      'Estimated Cost', 'EMD', 'Doc Fees', 'Brief', 'Description', 'T247 ID',
+      'Org Tender ID', 'Quantity', 'MSME Exemption', 'Startup Exemption',
+      'Site Location', 'Contact Person', 'Contact Address', 'Contact Number',
+      'Contact Email', 'Website', 'Max Win Companies', 'Probable Participants'
+    ];
+
+    // If the sheet is empty, add the header row first.
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(headers);
+    }
+
+    // Create an array for the new row, matching the header order.
+    const newRow = [
+      new Date(), // Adds a timestamp for when the data was recorded
+      data.projectTitle,
+      data.submissionDate,
+      data.openingDate,
+      data.estimatedCost,
+      data.emd,
+      data.docFees,
+      data.brief,
+      data.description,
+      data.t247Id,
+      data.orgTenderId,
+      data.quantity,
+      data.msmeExemption,
+      data.startupExemption,
+      data.siteLocation,
+      data.contactPerson,
+      data.contactAddress,
+      data.contactNumber,
+      data.contactEmail,
+      data.website,
+      data.maxWinCompanies.join(', '), // Join arrays into a single string
+      data.probableParticipants.join(', ') // Join arrays into a single string
+    ];
+
+    // Append the new row of data to the sheet.
+    sheet.appendRow(newRow);
+
+    // Return a success response to the Tampermonkey script.
+    return ContentService.createTextOutput(JSON.stringify({ result: 'success', row: sheet.getLastRow() }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    // Return an error response if something goes wrong.
+    return ContentService.createTextOutput(JSON.stringify({ result: 'error', message: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
